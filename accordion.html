@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Accordion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #faf7f2;
+      --surface: #ffffff;
+      --border: #e8e0d4;
+      --border-active: #c8b89a;
+      --text: #1c1814;
+      --text-muted: #8a7e72;
+      --text-body: #4a4038;
+      --accent: #2d6a4f;
+      --accent-light: rgba(45, 106, 79, 0.08);
+      --accent-mid: rgba(45, 106, 79, 0.16);
+      --shadow-sm: 0 1px 3px rgba(28,24,20,.06);
+      --shadow-md: 0 4px 20px rgba(28,24,20,.10);
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+    }
+
+    /* background pattern */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #c8b89a22 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    /* ── layout ── */
+    .wrapper {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* ── heading ── */
+    .heading {
+      text-align: center;
+      margin-bottom: 2.8rem;
+    }
+
+    .heading__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-light);
+      border: 1px solid var(--accent-mid);
+      border-radius: 999px;
+      padding: .3rem .9rem;
+      margin-bottom: 1rem;
+    }
+
+    .heading__title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.9rem, 5vw, 2.8rem);
+      font-weight: 600;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
+    .heading__title em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .heading__sub {
+      margin-top: .7rem;
+      font-size: .9rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* ── accordion list ── */
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+
+    /* ── individual item ── */
+    .accordion-item {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      transition: border-color .25s, box-shadow .25s;
+    }
+
+    /* active item styling — JS adds .open */
+    .accordion-item.open {
+      border-color: var(--border-active);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── trigger button ── */
+    .accordion-trigger {
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 1.4rem;
+      text-align: left;
+      transition: background .2s;
+    }
+
+    .accordion-trigger:hover {
+      background: #faf7f2;
+    }
+
+    .accordion-item.open .accordion-trigger {
+      background: var(--accent-light);
+    }
+
+    /* number badge */
+    .trigger__num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      font-family: 'Fraunces', serif;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .25s, border-color .25s, color .25s;
+    }
+
+    .accordion-item.open .trigger__num {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* question text */
+    .trigger__text {
+      flex: 1;
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.35;
+      transition: color .2s;
+    }
+
+    .accordion-item.open .trigger__text {
+      color: var(--accent);
+    }
+
+    /* icon */
+    .trigger__icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .25s, border-color .25s, transform .35s cubic-bezier(.34,1.4,.64,1);
+    }
+
+    .accordion-item.open .trigger__icon {
+      transform: rotate(45deg);
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .trigger__icon svg {
+      width: 13px;
+      height: 13px;
+      stroke: var(--text-muted);
+      transition: stroke .25s;
+    }
+
+    .accordion-item.open .trigger__icon svg {
+      stroke: #fff;
+    }
+
+    /* ── collapsible panel ── */
+    /*
+      HOW THE JS ANIMATION WORKS:
+      - On open:  set panel.style.height = panel.scrollHeight + 'px'
+      - On close: set panel.style.height = '0px'
+      - CSS transition does the rest
+    */
+    .accordion-panel {
+      height: 0;
+      overflow: hidden;
+      transition: height .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    .accordion-panel__inner {
+      padding: 0 1.4rem 1.4rem 1.4rem;
+      padding-left: calc(1.4rem + 28px + 1rem); /* align with text */
+    }
+
+    .accordion-panel__inner p {
+      font-size: .9rem;
+      line-height: 1.75;
+      color: var(--text-body);
+    }
+
+    /* divider between trigger and panel */
+    .accordion-item.open .accordion-trigger {
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── footer ── */
+    .footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+
+    .footer span { color: var(--accent); font-weight: 500; }
+  </style>
+</head>
+<body>
+
+  <div class="wrapper">
+
+    <div class="heading">
+      <span class="heading__eyebrow">DOM Project</span>
+      <h1 class="heading__title">Frequently Asked <em>Questions</em></h1>
+      <p class="heading__sub">Click any question to expand it. Only one section stays open at a time.</p>
+    </div>
+
+    <!-- ── Accordion ── -->
+    <!--
+      JS targets:
+        • Each item   → .accordion-item   (add/remove class "open")
+        • Trigger btn → .accordion-trigger
+        • Panel       → .accordion-panel  (set style.height)
+    -->
+    <div class="accordion" id="accordion">
+
+      <!-- Item 1 -->
+      <div class="accordion-item" data-item>
+        <button class="accordion-trigger" data-trigger>
+          <span class="trigger__num">01</span>
+          <span class="trigger__text">What is JavaScript used for in web development?</span>
+          <span class="trigger__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        </button>
+        <div class="accordion-panel" data-panel>
+          <div class="accordion-panel__inner">
+            <p>JavaScript is the language of interactivity on the web. It lets you respond to user actions, manipulate the DOM, fetch data from APIs, run animations, validate forms, and build full-scale applications — all directly in the browser without a page reload.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="accordion-item" data-item>
+        <button class="accordion-trigger" data-trigger>
+          <span class="trigger__num">02</span>
+          <span class="trigger__text">What is the DOM and why does it matter?</span>
+          <span class="trigger__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        </button>
+        <div class="accordion-panel" data-panel>
+          <div class="accordion-panel__inner">
+            <p>The Document Object Model (DOM) is a tree-like representation of your HTML that the browser builds when a page loads. JavaScript can read and change any node in that tree — adding elements, updating text, changing styles — which is how dynamic UIs are built without full page refreshes.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="accordion-item" data-item>
+        <button class="accordion-trigger" data-trigger>
+          <span class="trigger__num">03</span>
+          <span class="trigger__text">What is the difference between let, const, and var?</span>
+          <span class="trigger__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        </button>
+        <div class="accordion-panel" data-panel>
+          <div class="accordion-panel__inner">
+            <p>var is function-scoped and hoisted, which can cause surprising bugs. let is block-scoped and reassignable — the modern default for variables that change. const is also block-scoped but cannot be reassigned after declaration, making it ideal for values that should remain fixed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 4 -->
+      <div class="accordion-item" data-item>
+        <button class="accordion-trigger" data-trigger>
+          <span class="trigger__num">04</span>
+          <span class="trigger__text">How do event listeners work in JavaScript?</span>
+          <span class="trigger__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        </button>
+        <div class="accordion-panel" data-panel>
+          <div class="accordion-panel__inner">
+            <p>Event listeners let you attach a callback function to any DOM element that fires when a specific event occurs — clicks, key presses, mouse movements, form submissions, and more. You attach them with element.addEventListener('event', callback) and remove them with removeEventListener when they're no longer needed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item 5 -->
+      <div class="accordion-item" data-item>
+        <button class="accordion-trigger" data-trigger>
+          <span class="trigger__num">05</span>
+          <span class="trigger__text">What is the difference between == and === in JavaScript?</span>
+          <span class="trigger__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </span>
+        </button>
+        <div class="accordion-panel" data-panel>
+          <div class="accordion-panel__inner">
+            <p>The == operator checks for equality after performing type coercion, so 0 == false evaluates to true. The === operator is strict — it checks both value and type with no coercion, so 0 === false is false. Always prefer === to avoid subtle comparison bugs in your code.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /accordion -->
+
+    <p class="footer">Your <span>JavaScript</span> will wire up the open/close logic.</p>
+
+  </div>
+
+  <!-- =============================================
+       YOUR JS GOES HERE
+       =============================================
+       Targets (use data attributes to select):
+         • All items    → [data-item]    (.accordion-item)
+         • Trigger btn  → [data-trigger] inside each item
+         • Panel        → [data-panel]   inside each item
+
+       On trigger click:
+         1. Find the clicked item
+         2. Check if it's already open
+         3. Close ALL items:
+              - remove "open" class from every [data-item]
+              - set every [data-panel].style.height = '0px'
+         4. If the clicked item was NOT already open:
+              - add "open" class to it
+              - set its panel.style.height = panel.scrollHeight + 'px'
+
+       That's it — CSS handles all the visual transitions.
+  ================================================= -->
+  <script>
+    // TODO: your JavaScript goes here
+  </script>
+
+</body>
+</html>
